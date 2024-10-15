@@ -76,7 +76,7 @@ while True:
                     print(f"classCapacity: {class_capacity}, numberOfSelected: {number_of_selected}")
 
                     # 如果选课人数小于课程容量，则执行添加课程请求
-                    if number_of_selected > class_capacity:
+                    if number_of_selected < class_capacity:
                         add_data = {
                             "clazzType": class_type,
                             "clazzId": clazz_id,
