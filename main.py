@@ -4,21 +4,28 @@ import random
 import time
 import toml
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 # 从配置文件载入配置
 def load_config(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         return toml.load(file)
 
-# 配置和 URL
+# 引入配置
 config = load_config("config.toml")
 courses = config.get("courses", [])
-token = config.get("token")
+username = config.get("username")
+password = config.get("password")
 use_multithreading = config.get("use_multithreading", False)  # 控制是否启用多线程
 wait_time = config.get("wait_time", 0.5)  # 获取等待时间，默认为 0.5 秒
 
 list_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/list"
 add_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/add"
+
+token = None  # 初始化为 None
 
 # 随机 User-Agent 列表
 user_agents = [
@@ -28,10 +35,51 @@ user_agents = [
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36"
 ]
 
-headers = {"Authorization": token}
+# 从网页自动获取 Token
+def get_token():
+    global token
+    driver = webdriver.Chrome()
+    try:
+        driver.get("https://jwxk.shu.edu.cn/")
+
+        # 输入用户名和密码
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.ID, "username"))
+        )
+        driver.find_element(By.ID, "username").send_keys(username)
+        driver.find_element(By.ID, "password").send_keys(password)
+
+        # 点击提交按钮
+        submit_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "submit-button"))
+        )
+        submit_button.click()
+
+        # 等待重定向
+        WebDriverWait(driver, 20).until(
+            lambda d: d.current_url != "https://jwxk.shu.edu.cn/"
+        )
+
+        time.sleep(1)
+
+        # 获取 cookies
+        cookies = driver.get_cookies()
+        for cookie in cookies:
+            if cookie['name'] == 'Authorization':
+                token = cookie['value']
+                break
+
+        print("获取到的 Token:", token)
+    except Exception as e:
+        print("发生错误：", e)
+    finally:
+        driver.quit()
 
 # 查询并尝试选课的任务函数
 def query_and_add_course(course):
+    global token
+    headers = {"Authorization": token}
+
     KCH = course.get("KCH")
     JSH = course.get("JSH")
     class_type = course.get("class_type", "XGKC")
@@ -47,7 +95,7 @@ def query_and_add_course(course):
     headers["User-Agent"] = random.choice(user_agents)
     response = requests.post(list_url, headers=headers, data=list_data)
 
-    if response.status_code == 200:
+    try:
         response_data = response.json()
 
         if "data" in response_data and "list" in response_data["data"]:
@@ -73,10 +121,15 @@ def query_and_add_course(course):
                         return True  # 成功选课后返回
                     else:
                         print(f"课程 {KCH} 添加失败，状态码: {add_response.status_code}")
+                        if add_response.status_code == 401:
+                            print("Token 失效，正在更新 Token...")
+                            get_token()  # 更新 Token
                 else:
                     print(f"课程 {KCH} 已满，继续尝试...")
-    else:
+    except:
         print(f"查询课程失败，状态码: {response.status_code}")
+        print("Token 失效，正在更新 Token...")
+        get_token()  # 更新 Token
     return False
 
 # 多线程查询和选课逻辑
@@ -97,6 +150,7 @@ def query_courses_singlethread():
 
 # 主函数，根据配置选择单线程或多线程模式
 def main():
+    get_token()  # 首先获取 Token
     attempt = 0
     while True:
         attempt += 1
