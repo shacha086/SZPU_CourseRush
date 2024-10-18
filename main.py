@@ -15,6 +15,7 @@ config = load_config("config.toml")
 courses = config.get("courses", [])
 token = config.get("token")
 use_multithreading = config.get("use_multithreading", False)  # 控制是否启用多线程
+wait_time = config.get("wait_time", 0.5)  # 获取等待时间，默认为 0.5 秒
 
 list_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/list"
 add_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/add"
@@ -35,7 +36,6 @@ def query_and_add_course(course):
     JSH = course.get("JSH")
     class_type = course.get("class_type", "XGKC")
 
-    # 准备查询数据
     list_data = {
         "teachingClassType": class_type,
         "pageNumber": 1,
@@ -44,28 +44,20 @@ def query_and_add_course(course):
         "JSH": JSH
     }
 
-    # 设置随机 User-Agent
     headers["User-Agent"] = random.choice(user_agents)
-
-    # 发送课程查询请求
     response = requests.post(list_url, headers=headers, data=list_data)
 
     if response.status_code == 200:
-        print(f"查询课程成功: 课程号 {KCH}")
         response_data = response.json()
 
         if "data" in response_data and "list" in response_data["data"]:
             rows = response_data["data"]["list"].get("rows", [])
-
             for row in rows:
                 class_capacity = row.get("classCapacity")
                 number_of_selected = row.get("numberOfSelected")
                 clazz_id = row.get("JXBID")
                 secret_val = row.get("secretVal")
 
-                print(f"课程 {KCH} 容量: {class_capacity}, 已选人数: {number_of_selected}")
-
-                # 判断是否可以选课
                 if number_of_selected < class_capacity:
                     add_data = {
                         "clazzType": class_type,
@@ -73,7 +65,6 @@ def query_and_add_course(course):
                         "secretVal": secret_val
                     }
 
-                    # 发送选课请求
                     add_response = requests.post(add_url, headers=headers, data=add_data)
 
                     if add_response.status_code == 200:
@@ -122,10 +113,9 @@ def main():
             print(f"抢课成功! 第 {attempt} 次尝试")
             break
 
-        # 随机延时避免频繁请求
-        delay = random.uniform(0.5, 1)
-        print(f"延时: {delay:.2f} 秒")
-        time.sleep(delay)
+        # 使用配置的等待时间
+        print(f"等待时间: {wait_time:.2f} 秒")
+        time.sleep(wait_time)
 
 # 程序入口
 if __name__ == "__main__":
