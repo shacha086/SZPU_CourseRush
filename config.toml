@@ -1,13 +1,9 @@
 # 用户认证 token
-token = "your_token"
+token = "your_token_here"
+use_multithreading = false # 将其更改为 true 来启用多线程
 
 # 课程信息列表
 [[courses]]
 KCH = "08305014"    # 课程号
 JSH = "1005"        # 教师号
 class_type = "XGKC" # 课程类型
-
-[[courses]]
-KCH = "0830SY02"
-JSH = "1001"
-class_type = "XGKC"
