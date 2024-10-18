@@ -167,9 +167,11 @@ def main():
             print(f"抢课成功! 第 {attempt} 次尝试")
             break
 
-        # 使用配置的等待时间
-        print(f"等待时间: {wait_time:.2f} 秒")
-        time.sleep(wait_time)
+        # 使用配置的等待时间并添加波动
+        fluctuated_wait_time = wait_time + random.uniform(-0.2, 0.2)  # Adds a random fluctuation between -0.2 and 0.2 seconds
+        fluctuated_wait_time = max(0, fluctuated_wait_time)  # Ensures wait time is non-negative
+        print(f"等待时间: {fluctuated_wait_time:.2f} 秒")
+        time.sleep(fluctuated_wait_time)
 
 # 程序入口
 if __name__ == "__main__":

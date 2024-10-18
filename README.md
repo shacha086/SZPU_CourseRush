@@ -4,7 +4,7 @@
 
 1. **安装依赖库**
 
-   需要使用 `requests` 和 `toml` 库，您可以使用以下命令安装：
+   需要使用 `requests` 、 `toml` 和 `selenium` 库，您可以使用以下命令安装：
 
    ```sh
    pip install requests toml
