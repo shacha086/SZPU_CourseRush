@@ -8,6 +8,12 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.edge.options import Options as EdgeOptions
 
 # 从配置文件载入配置
 def load_config(file_path):
@@ -21,6 +27,7 @@ username = config.get("username")
 password = config.get("password")
 use_multithreading = config.get("use_multithreading", False)  # 控制是否启用多线程
 wait_time = config.get("wait_time", 0.5)  # 获取等待时间，默认为 0.5 秒
+browser = config.get("browser", "chrome")  # 指定浏览器，默认为 chrome
 
 list_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/list"
 add_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/add"
@@ -38,8 +45,24 @@ user_agents = [
 # 从网页自动获取 Token
 def get_token():
     global token
-    driver = webdriver.Chrome()
+
+    driver = None
+
     try:
+        # 初始化不同的 WebDriver 实例基于配置中的浏览器选择
+        if browser == "chrome":
+            chrome_options = ChromeOptions()
+            driver = webdriver.Chrome(service=ChromeService(), options=chrome_options)
+        elif browser == "firefox":
+            firefox_options = FirefoxOptions()
+            driver = webdriver.Firefox(service=FirefoxService(), options=firefox_options)
+        elif browser == "edge":
+            edge_options = EdgeOptions()
+            driver = webdriver.Edge(service=EdgeService(), options=edge_options)
+        else:
+            print(f"未识别的浏览器类型: {browser}")
+            return
+
         driver.get("https://jwxk.shu.edu.cn/")
 
         # 输入用户名和密码
@@ -57,7 +80,6 @@ def get_token():
         # 祖宗之法不可变，注释掉页面会加载不出来，推测是操作太快被ban了
         # TODO: 期待优雅的解决方法
         time.sleep(1)
-
         submit_button.click()
 
         # 祖宗之法不可变，注释掉token会加载不出来，就是要等待一段时间
@@ -71,11 +93,15 @@ def get_token():
                 token = cookie['value']
                 break
 
-        print("获取到的 Token:", token)
+        if token:
+            print(f"获取到的 Token: {token}")
+
     except Exception as e:
-        print("发生错误：", e)
+        print(f"{browser.capitalize()} 浏览器发生错误: {e}")
+
     finally:
-        driver.quit()
+        if driver:
+            driver.quit()
 
 # 查询并尝试选课的任务函数
 def query_and_add_course(course):
