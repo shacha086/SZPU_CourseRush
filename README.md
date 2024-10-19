@@ -7,7 +7,7 @@
    需要使用 `requests` 、 `toml` 和 `selenium` 库，您可以使用以下命令安装：
 
    ```sh
-   pip install requests toml
+   pip install requests toml selenium
    ```
 
 2. **配置 `config.toml` 文件**
@@ -16,7 +16,10 @@
 
    ```toml
    # 用户认证 token
-   token = "your_token_here"
+   use_multithreading = false # 将其更改为 true 来启用多线程
+   wait_time = 5.0            # 每次尝试后的等待时间（秒）
+   username = "your_username_here"
+   password = "your_password_here"
 
    # 课程信息列表
    [[courses]]

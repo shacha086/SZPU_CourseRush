@@ -53,13 +53,15 @@ def get_token():
         submit_button = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.ID, "submit-button"))
         )
+
+        # 祖宗之法不可变，注释掉页面会加载不出来，推测是操作太快被ban了
+        # TODO: 期待优雅的解决方法
+        time.sleep(1)
+
         submit_button.click()
 
-        # 等待重定向
-        WebDriverWait(driver, 20).until(
-            lambda d: d.current_url != "https://jwxk.shu.edu.cn/"
-        )
-
+        # 祖宗之法不可变，注释掉token会加载不出来，就是要等待一段时间
+        # TODO: 期待优雅的解决方法
         time.sleep(1)
 
         # 获取 cookies
@@ -93,7 +95,12 @@ def query_and_add_course(course):
     }
 
     headers["User-Agent"] = random.choice(user_agents)
-    response = requests.post(list_url, headers=headers, data=list_data)
+
+    try:
+        response = requests.post(list_url, headers=headers, data=list_data)
+    except requests.exceptions.RequestException as e:
+        print(f"请求失败: {e}")
+        return False
 
     try:
         response_data = response.json()
