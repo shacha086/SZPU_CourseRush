@@ -50,6 +50,8 @@ def get_token():
 
     try:
         # 初始化不同的 WebDriver 实例基于配置中的浏览器选择
+        # TODO: 浏览器有适配问题，待解决，可能运行不了，建议回退上个commit
+        # [fix] 更新了README；获取token更加稳定；查询不再会终止程序
         if browser == "chrome":
             chrome_options = ChromeOptions()
             driver = webdriver.Chrome(service=ChromeService(), options=chrome_options)
