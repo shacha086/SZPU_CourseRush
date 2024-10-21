@@ -26,12 +26,10 @@
    [[courses]]
    KCH = "08305014"       # 课程号
    JSH = "1005"           # 教师号
-   class_type = "XGKC"    # 课程类型
 
    [[courses]]
    KCH = "08306096"
    JSH = "1007"
-   class_type = "XGKC"
    ```
 
 3. **运行脚本**
