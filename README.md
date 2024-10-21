@@ -4,10 +4,10 @@
 
 1. **安装依赖库**
 
-   需要使用 `requests` 、 `toml` 和 `selenium` 库，您可以使用以下命令安装：
+   需要使用 `requests` 、 `toml` 、 `glog` 和 `selenium` 库，您可以使用以下命令安装：
 
    ```sh
-   pip install requests toml selenium
+   pip install requests toml glog selenium
    ```
 
 2. **配置 `config.toml` 文件**
@@ -20,7 +20,7 @@
    wait_time = 5.0            # 每次尝试后的等待时间（秒）
    username = "your_username_here"
    password = "your_password_here"
-   browser = "chrome"  # 可以是 "chrome", "firefox", 或 "edge"
+   browser = "edge"  # 可以是 "chrome", "firefox", 或 "edge"
 
    # 课程信息列表
    [[courses]]
