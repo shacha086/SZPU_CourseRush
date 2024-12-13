@@ -1,10 +1,11 @@
 import requests
-import json
 import random
 import time
 import toml
 import glog as log
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import websockets
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -28,8 +29,8 @@ use_multithreading = config.get("use_multithreading", False)
 wait_time = config.get("wait_time", 5.0)
 browser = config.get("browser", "edge")
 
-list_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/list"
-add_url = "https://jwxk.shu.edu.cn/xsxk/elective/shu/clazz/add"
+list_url = "https://jwxk.szpu.edu.cn/xsxk/elective/clazz/list"
+add_url = "https://jwxk.szpu.edu.cn/xsxk/elective/clazz/add"
 
 token = None
 user_agents = [
@@ -56,10 +57,11 @@ def get_token():
 
         driver.get("https://jwxk.shu.edu.cn/")
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "username")))
-        driver.find_element(By.ID, "username").send_keys(username)
-        driver.find_element(By.ID, "password").send_keys(password)
-
-        submit_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "submit-button")))
+        driver.find_element("placeholder", "请输入学号").send_keys(username)
+        driver.find_element("placeholder", "请输入密码").send_keys(password)
+        driver.find_element(By.ID, "vcodeImg").get_property("src")
+        input("")
+        submit_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "el-button longin-button el-button--primary is-round")))
         time.sleep(1)
         submit_button.click()
         time.sleep(1)
@@ -91,8 +93,7 @@ def query_and_add_course(course):
         "teachingClassType": class_type,
         "pageNumber": 1,
         "pageSize": 10,
-        "KCH": KCH,
-        "JSH": JSH
+        "orderBy": ""
     }
 
     try:
@@ -137,8 +138,13 @@ def query_courses_singlethread():
             return True
     return False
 
+async def send_heart_pack():
+    async with websockets.connect(f'ws://jwxk.szpu.edu.cn/xsxk/websocket/{username}') as websocket:
+
+
 def main():
     get_token()
+
     attempt = 0
     while True:
         attempt += 1

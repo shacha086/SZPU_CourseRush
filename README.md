@@ -4,10 +4,10 @@
 
 1. **安装依赖库**
 
-   需要使用 `requests` 、 `toml` 、 `glog` 和 `selenium` 库，您可以使用以下命令安装：
+   需要使用 `requests` 、 `toml` 、 `glog` 、`websockets`和 `selenium` 库，您可以使用以下命令安装：
 
    ```sh
-   pip install requests toml glog selenium
+   pip install requests toml glog selenium websockets
    ```
 
 2. **配置 `config.toml` 文件**
